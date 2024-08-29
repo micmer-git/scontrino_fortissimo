@@ -1,18 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Grocery List Nutritional Analysis</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutritional Analysis Web App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-2xl w-full">
+        <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">Nutritional Analysis</h1>
+        <form id="uploadForm" class="mb-6">
+            <div class="mb-4">
+                <label for="imageUpload" class="block text-sm font-medium text-gray-700 mb-2">Upload Grocery List Image</label>
+                <input type="file" id="imageUpload" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                Analyze
+            </button>
+        </form>
+        <div id="result" class="prose max-w-none"></div>
+    </div>
 
-    <h1>Grocery List Nutritional Analysis</h1>
+    <script>
+        const form = document.getElementById('uploadForm');
+        const resultDiv = document.getElementById('result');
 
-    <input type="file" id="imageInput" accept="image/*">
-    <button id="analyzeButton">Analyze</button>
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const imageFile = document.getElementById('imageUpload').files[0];
+            if (!imageFile) {
+                alert('Please select an image first.');
+                return;
+            }
 
-    <div id="results"></div>
+            const formData = new FormData();
+            formData.append('image', imageFile);
 
-    <script src="script.js"></script>
+            const prompt = `Provide a comprehensive nutritional analysis of the grocery list in the image. Include the following:
+1. A detailed table with these columns: - Nutrient - Total amount - Percentage of Daily Value (based on a 2000 kcal diet) - Top 3 contributing foods with their percentage of the total
+2. Calculate precise values for: - Macronutrients: Calories, Protein, Carbohydrates, Fat, Fiber - Micronutrients: Calcium, Iron, Vitamins A, C, D, E, K, B12, Potassium, Sodium, Magnesium, Zinc, Selenium
+3. Make reasonable assumptions about missing product information, but clearly state these assumptions.
+4. List any unclear or missing information about products that would improve the accuracy of the analysis.
+5. Provide a brief summary of key nutritional observations.
+6. Double-check all calculations for accuracy and consistency.
+7. Use standard nutritional databases for calculations if specific product information is not available.
+8. Include a note about any potential nutritional imbalances or excesses.
+9. Assume the egg whites are 500g unless otherwise specified.
+Please reanalyze the grocery list with these guidelines, paying special attention to computational consistency and detail. If you need any clarification on specific products or quantities, please ask.`;
+
+            formData.append('prompt', prompt);
+
+            try {
+                const response = await fetch('YOUR_CLAUDE_API_ENDPOINT', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer YOUR_API_KEY'
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+
+                const data = await response.json();
+                resultDiv.innerHTML = data.response;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<p class="text-red-500">An error occurred: ${error.message}</p>`;
+            }
+        });
+    </script>
 </body>
 </html>
