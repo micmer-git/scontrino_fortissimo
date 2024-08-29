@@ -1,0 +1,1 @@
+# scontrino_fortissimo
